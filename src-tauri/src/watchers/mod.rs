@@ -47,7 +47,7 @@ impl Watcher for MockWatcher {
 pub fn start_all(tx: &Sender<DeviceEvent>) {
     let mut watchers: Vec<Box<dyn Watcher>> = Vec::new();
 
-    if let Some(id) = std::env::args().find_map(|a| a.strip_prefix("--mock=").map(str::to_owned)) {
+    if let Some(id) = std::env::args().filter(|_| cfg!(debug_assertions)).find_map(|a| a.strip_prefix("--mock=").map(str::to_owned)) {
         watchers.push(Box::new(MockWatcher { id }));
     }
 

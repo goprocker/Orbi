@@ -66,10 +66,13 @@ pub fn run() {
             menu.append(&CheckMenuItem::with_id(app, "autostart", "Start with Windows", true, autostart_on, None::<&str>)?)?;
             menu.append(&PredefinedMenuItem::separator(app)?)?;
 
-            for (id, label) in MOCKS {
-                menu.append(&MenuItem::with_id(app, id, label, true, None::<&str>)?)?;
+            // fake devices are a development aid only; release builds show real devices only
+            if cfg!(debug_assertions) {
+                for (id, label) in MOCKS {
+                    menu.append(&MenuItem::with_id(app, id, label, true, None::<&str>)?)?;
+                }
+                menu.append(&PredefinedMenuItem::separator(app)?)?;
             }
-            menu.append(&PredefinedMenuItem::separator(app)?)?;
             menu.append(&MenuItem::with_id(app, "quit", "Quit Orbi", true, None::<&str>)?)?;
 
             TrayIconBuilder::with_id(TRAY_ID)
