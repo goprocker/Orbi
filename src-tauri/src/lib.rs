@@ -52,6 +52,16 @@ pub fn run() {
                 });
                 menu.append(&CheckMenuItem::with_id(app, format!("toggle_{key}"), label, true, on, None::<&str>)?)?;
             }
+            if !loaded.autostart_initialized {
+                // first run: start with Windows so Orbi is always there when something connects
+                if let Err(e) = app.autolaunch().enable() {
+                    eprintln!("[orbi] could not enable autostart: {e}");
+                }
+                let state = app.state::<settings::SettingsState>();
+                let mut s = state.0.lock().unwrap();
+                s.autostart_initialized = true;
+                settings::save(app.handle(), &s);
+            }
             let autostart_on = app.autolaunch().is_enabled().unwrap_or(false);
             menu.append(&CheckMenuItem::with_id(app, "autostart", "Start with Windows", true, autostart_on, None::<&str>)?)?;
             menu.append(&PredefinedMenuItem::separator(app)?)?;

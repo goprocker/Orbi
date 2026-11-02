@@ -61,7 +61,11 @@ impl Watcher for BluetoothWatcher {
         }
 
         thread::spawn(move || {
-            let mut known = snapshot(); // already-connected devices do not pop up at launch
+            let mut known = snapshot();
+            // report what is already connected; the pipeline folds these into one launch popup
+            for event in known.values() {
+                let _ = tx.send(event.clone());
+            }
             loop {
                 let alive = if known.is_empty() {
                     wait_for_change(&wake_rx, QUIET)

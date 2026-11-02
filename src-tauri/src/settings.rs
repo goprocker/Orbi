@@ -17,11 +17,13 @@ pub struct Settings {
     pub usb: bool,
     /// How long the popup stays up, in seconds.
     pub popup_seconds: u64,
+    /// Set once the first-run autostart default has been applied, so a later opt-out sticks.
+    pub autostart_initialized: bool,
 }
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings { bluetooth: true, wifi: true, ethernet: true, usb: true, popup_seconds: 5 }
+        Settings { bluetooth: true, wifi: true, ethernet: true, usb: true, popup_seconds: 5, autostart_initialized: false }
     }
 }
 

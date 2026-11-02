@@ -46,7 +46,10 @@ impl Watcher for NetworkWatcher {
         }
 
         thread::spawn(move || {
-            let mut known = snapshot(); // already-connected networks do not pop up at launch
+            let mut known = snapshot();
+            for event in known.values() {
+                let _ = tx.send(event.clone());
+            }
             while wait_for_change(&wake_rx, QUIET) {
                 let now = snapshot();
                 for (id, event) in &now {

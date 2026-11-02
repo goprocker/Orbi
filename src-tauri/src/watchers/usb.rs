@@ -54,7 +54,10 @@ impl Watcher for UsbWatcher {
         }
 
         thread::spawn(move || {
-            let mut known = removable_drives(); // drives already plugged in do not pop up at launch
+            let mut known = removable_drives();
+            for event in known.values() {
+                let _ = tx.send(event.clone());
+            }
             while wait_for_change(&wake_rx, QUIET) {
                 let now = removable_drives();
                 for (id, event) in &now {

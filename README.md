@@ -4,7 +4,7 @@ A tiny Windows 11 tray app. When something connects (earbuds, Wi-Fi, Ethernet, a
 slides up showing a live visual of it, like the AirPods popup on a MacBook.
 
 Goals: near-zero idle CPU and RAM, event-driven (no polling), works for any connection type.
-Full plan, architecture and progress log: `Orbi-Tech-Plan.pdf`.
+Full plan, architecture and progress log: `Orbi-Tech-Plan.pdf`. Project guide: `Orbi-Guide.pdf`.
 
 ## Status
 
@@ -52,8 +52,8 @@ Mock ids: `mock_earbuds`, `mock_airpods`, `mock_wifi`, `mock_ethernet`, `mock_us
 for each. Use `npm run tauri build`, not a plain `cargo build`: a plain cargo build makes the popup load the dev
 server and show a blank error page.
 
-Tests: `cd src-tauri && cargo test` (23 tests).
+Tests: `cd src-tauri && cargo test` (24 tests).
 
 Installer: `npm run tauri build` writes `src-tauri/target/release/bundle/nsis/Orbi_0.1.0_x64-setup.exe`.
 
-Known limits: devices already connected at launch do not pop up; USB hard drives and SSDs are not detected (Windows reports them as fixed disks); Bluetooth and AirPods code needs real hardware to verify.
+Known limits: at launch only one popup is shown even if several devices are connected; USB hard drives and SSDs are not detected (Windows reports them as fixed disks); Bluetooth and AirPods code needs real hardware to verify.

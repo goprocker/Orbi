@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use crate::events::{DeviceEvent, Part, Status};
+use crate::events::{DeviceEvent, DeviceType, Part, Status};
 
 /// A device that reconnects within this window does not pop up again (connection flapping).
 const DEBOUNCE: Duration = Duration::from_secs(2);
@@ -12,6 +12,18 @@ const LOW: u8 = 20;
 pub enum Action {
     Show(DeviceEvent),
     Nothing,
+}
+
+/// Of the shown events collected right after launch, the one worth a single popup:
+/// earbuds first, then Wi-Fi, Ethernet, USB.
+pub fn pick_launch(shown: Vec<DeviceEvent>) -> Option<DeviceEvent> {
+    let rank = |t: &DeviceType| match t {
+        DeviceType::Bluetooth => 0,
+        DeviceType::Wifi => 1,
+        DeviceType::Ethernet => 2,
+        DeviceType::Usb => 3,
+    };
+    shown.into_iter().min_by_key(|e| rank(&e.device_type))
 }
 
 /// Tracks live devices and decides which watcher events deserve a popup.
@@ -166,6 +178,16 @@ mod tests {
         let mut core = Core::default();
         let e = with_status(airpods(), Status::Updated);
         assert!(matches!(core.handle(e, Instant::now()), Action::Show(_)));
+    }
+
+    #[test]
+    fn launch_pick_prefers_earbuds_then_network_then_usb() {
+        let usb = mock::event("mock_usb").unwrap();
+        let wifi = mock::event("mock_wifi").unwrap();
+        let buds = mock::event("mock_earbuds").unwrap();
+        assert_eq!(pick_launch(vec![usb.clone(), wifi.clone(), buds.clone()]), Some(buds));
+        assert_eq!(pick_launch(vec![usb, wifi.clone()]), Some(wifi));
+        assert_eq!(pick_launch(vec![]), None);
     }
 
     #[test]
