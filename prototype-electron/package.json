@@ -1,0 +1,13 @@
+{
+  "name": "orbi",
+  "version": "0.1.0",
+  "description": "Battery popup for Bluetooth earbuds",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "mock": "electron . --mock"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

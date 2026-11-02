@@ -1,0 +1,149 @@
+:root {
+  --ok: #30d158;
+  --warn: #ffd60a;
+  --low: #ff453a;
+  --track: rgba(255, 255, 255, 0.14);
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+  color: #fff;
+  user-select: none;
+}
+
+body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 336px;
+  margin-bottom: 14px;
+  padding: 18px 20px 16px;
+  border-radius: 28px;
+  background: rgba(28, 28, 32, 0.94);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  animation: rise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(36px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+  .fill {
+    transition: none !important;
+  }
+}
+
+.title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.sub {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.6;
+  margin-top: 8px;
+}
+
+/* parts row (earbuds / AirPods) */
+.parts {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+}
+
+.part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.part svg {
+  width: 64px;
+  height: 64px;
+}
+
+.part .label {
+  font-size: 11px;
+  opacity: 0.55;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.part.single svg {
+  width: 96px;
+  height: 96px;
+}
+
+.shape {
+  fill: var(--track);
+}
+
+.fill {
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* wifi bars */
+.bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  height: 64px;
+}
+
+.bars i {
+  width: 12px;
+  border-radius: 4px;
+  background: var(--track);
+}
+
+.bars i.on {
+  background: var(--ok);
+}
+
+/* storage bar */
+.meter {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--track);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.meter b {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--ok);
+}
+
+.hero {
+  display: flex;
+  justify-content: center;
+}
+
+.hero svg {
+  width: 72px;
+  height: 72px;
+}
