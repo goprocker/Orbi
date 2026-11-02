@@ -1,8 +1,13 @@
 :root {
-  --ok: #30d158;
-  --warn: #ffd60a;
-  --low: #ff453a;
-  --track: rgba(255, 255, 255, 0.14);
+  --ink: #14161b;
+  --graphite: #1e2128;
+  --porcelain: #eceef2;
+  --muted: rgba(236, 238, 242, 0.58);
+  --track: rgba(236, 238, 242, 0.1);
+  --ion: #5be3a8;
+  --amber: #f5b94a;
+  --flare: #ff6b5e;
+  --ease: cubic-bezier(0.22, 0.8, 0.2, 1);
 }
 
 html,
@@ -11,9 +16,10 @@ body {
   height: 100%;
   background: transparent;
   overflow: hidden;
-  font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
-  color: #fff;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  color: var(--porcelain);
   user-select: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -23,127 +29,200 @@ body {
 }
 
 .card {
+  position: relative;
   box-sizing: border-box;
-  width: 336px;
+  width: 348px;
   margin-bottom: 14px;
-  padding: 18px 20px 16px;
-  border-radius: 28px;
-  background: rgba(28, 28, 32, 0.94);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
-  animation: rise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  padding: 20px 22px 18px;
+  border-radius: 30px;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(255, 255, 255, 0.07), transparent 55%),
+    var(--ink);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 3px 12px rgba(0, 0, 0, 0.38);
+  animation: arrive 0.5s var(--ease);
 }
 
-@keyframes rise {
+@keyframes arrive {
   from {
-    transform: translateY(36px) scale(0.96);
+    transform: translateY(28px) scale(0.97);
     opacity: 0;
   }
+}
+
+/* dismiss */
+.close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--graphite);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 24px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.card:hover .close,
+.close:focus-visible {
+  opacity: 1;
+}
+
+.close:hover {
+  color: var(--porcelain);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--porcelain);
+  outline-offset: 2px;
+}
+
+/* the orbit */
+.orbit {
+  --p: 0;
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.orbit .track,
+.orbit .arc {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.orbit .track {
+  stroke: var(--track);
+}
+
+.orbit .arc {
+  stroke: var(--c);
+  stroke-dasharray: 100;
+  stroke-dashoffset: calc(100 - var(--p) * 100);
+  transition: stroke-dashoffset 1.2s var(--ease) var(--d, 0ms);
+}
+
+.orbit .rider {
+  transform-origin: 48px 48px;
+  transform: rotate(calc(var(--p) * 360deg));
+  transition: transform 1.2s var(--ease) var(--d, 0ms);
+}
+
+.orbit .dot {
+  fill: #fff;
+}
+
+.orbit .halo {
+  fill: var(--c);
+  opacity: 0.45;
+  filter: blur(2.5px);
+}
+
+/* parts layout: left bud, right bud, case */
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-right: 22px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.cell .reading {
+  font-size: 19px;
+}
+
+.cap {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* single device layout */
+.solo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.info {
+  min-width: 0;
+  padding-right: 14px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+.state {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.state.warn {
+  color: var(--flare);
+}
+
+.reading {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.reading.big {
+  margin: 2px 0 1px;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.reading .unit {
+  margin-left: 1px;
+  font-size: 0.55em;
+  color: var(--muted);
+}
+
+.reading .txt {
+  font-size: 0.62em;
+  font-weight: 400;
+}
+
+.bolt {
+  align-self: center;
+  width: 0.5em;
+  height: 0.7em;
+  margin-left: 6px;
+  color: var(--amber);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card {
     animation: none;
   }
-  .fill {
-    transition: none !important;
+  .orbit .arc,
+  .orbit .rider {
+    transition: none;
   }
-}
-
-.title {
-  text-align: center;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.sub {
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.6;
-  margin-top: 8px;
-}
-
-/* parts row (earbuds / AirPods) */
-.parts {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-}
-
-.part {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.part svg {
-  width: 64px;
-  height: 64px;
-}
-
-.part .label {
-  font-size: 11px;
-  opacity: 0.55;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.part.single svg {
-  width: 96px;
-  height: 96px;
-}
-
-.shape {
-  fill: var(--track);
-}
-
-.fill {
-  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-/* wifi bars */
-.bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 6px;
-  height: 64px;
-}
-
-.bars i {
-  width: 12px;
-  border-radius: 4px;
-  background: var(--track);
-}
-
-.bars i.on {
-  background: var(--ok);
-}
-
-/* storage bar */
-.meter {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--track);
-  overflow: hidden;
-  margin-top: 12px;
-}
-
-.meter b {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: var(--ok);
-}
-
-.hero {
-  display: flex;
-  justify-content: center;
-}
-
-.hero svg {
-  width: 72px;
-  height: 72px;
 }

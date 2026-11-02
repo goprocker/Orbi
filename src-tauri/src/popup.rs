@@ -10,8 +10,8 @@ use tauri::{
 use crate::events::DeviceEvent;
 
 const LABEL: &str = "popup";
-const WIDTH: f64 = 360.0;
-const HEIGHT: f64 = 240.0;
+const WIDTH: f64 = 380.0;
+const HEIGHT: f64 = 270.0;
 const MARGIN: f64 = 16.0;
 const SHOW_FOR: Duration = Duration::from_millis(5000);
 const TICK: Duration = Duration::from_millis(250);
@@ -89,4 +89,16 @@ pub fn popup_ready(state: State<PopupState>) -> Option<DeviceEvent> {
 #[tauri::command]
 pub fn popup_hover(state: State<PopupState>, hovered: bool) {
     state.hovered.store(hovered, Ordering::SeqCst);
+}
+
+/// The popup's close button.
+#[tauri::command]
+pub fn popup_close(app: AppHandle, state: State<PopupState>) {
+    // A newer generation makes any pending auto-close timer a no-op.
+    state.generation.fetch_add(1, Ordering::SeqCst);
+    state.hovered.store(false, Ordering::SeqCst);
+    *state.current.lock().unwrap() = None;
+    if let Some(window) = app.get_webview_window(LABEL) {
+        let _ = window.destroy();
+    }
 }

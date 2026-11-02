@@ -25,7 +25,7 @@ const MOCKS: [(&str, &str); 5] = [
 pub fn run() {
     tauri::Builder::default()
         .manage(popup::PopupState::default())
-        .invoke_handler(tauri::generate_handler![popup::popup_ready, popup::popup_hover])
+        .invoke_handler(tauri::generate_handler![popup::popup_ready, popup::popup_hover, popup::popup_close])
         .setup(|app| {
             let bus = pipeline::start(app.handle());
             let menu = Menu::new(app)?;
