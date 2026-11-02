@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { bud, chargingCase, plugGlyph, usbGlyph, wifiGlyph } from "./art";
+import { bud, chargingCase, earbudsScene, packFor, plugGlyph, usbGlyph, wifiGlyph } from "./art";
 
 interface Part {
   key: "left" | "right" | "case" | "main";
@@ -57,10 +57,11 @@ function partsView(e: DeviceEvent): string {
     .map((p, i) => {
       const color = health(p.level);
       const id = `${p.key}${i}`;
+      const pack = packFor(e.name);
       const object =
         p.key === "case"
-          ? chargingCase(id, color)
-          : bud(id, p.key === "right");
+          ? chargingCase(id, color, 1, pack)
+          : bud(id, p.key === "right", 1, pack);
       const name = { left: "Left", right: "Right", case: "Case", main: "" }[p.key];
       return `
         <div class="cell">
@@ -91,7 +92,8 @@ function singleView(e: DeviceEvent, ring: string, value: string, status: string,
 function bluetoothView(e: DeviceEvent): string {
   if (e.parts.length > 1) return partsView(e);
   const p = e.parts[0] ?? { key: "main", level: 0, charging: false };
-  const ring = orbit(bud("main", false, 1.15), p.level, health(p.level), 112, 0);
+  // One battery value for the whole product, so show the full pair and case inside one ring.
+  const ring = orbit(earbudsScene("main", health(p.level), packFor(e.name)), p.level, health(p.level), 112, 0);
   const status = p.charging ? "Charging" : p.level <= 20 ? "Low battery" : "Connected";
   return singleView(e, ring, percent(p.level) + (p.charging ? BOLT : ""), status, p.level <= 20 && !p.charging);
 }

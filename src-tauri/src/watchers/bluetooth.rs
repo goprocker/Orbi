@@ -6,7 +6,8 @@
 //! at least one device is connected the worker re-reads it every `REFRESH`, because Windows
 //! sends no notification when only the battery changes.
 //!
-//! NOT VERIFIED ON HARDWARE: the dev machine had no Bluetooth audio device with a battery.
+//! Windows reports one battery value per device here; separate left / right / case levels are
+//! only available for AirPods-style broadcasts (see airpods.rs).
 
 use std::collections::HashMap;
 use std::sync::mpsc::{self, RecvTimeoutError, Sender};
@@ -33,6 +34,11 @@ const REFRESH: Duration = Duration::from_secs(60);
 const BATTERY_KEY: DEVPROPKEY = DEVPROPKEY {
     fmtid: windows::core::GUID::from_u128(0x104ea319_6ee2_4701_bd47_8ddbf425bbe5),
     pid: 2,
+};
+/// Bluetooth "is connected" flag on a paired device's DEV_ node (a single boolean byte).
+const IS_CONNECTED_KEY: DEVPROPKEY = DEVPROPKEY {
+    fmtid: windows::core::GUID::from_u128(0x83da6326_97a6_4088_9453_a1923f573b29),
+    pid: 15,
 };
 /// DEVPKEY_Device_FriendlyName
 const FRIENDLY_NAME_KEY: DEVPROPKEY = DEVPROPKEY {
@@ -126,7 +132,14 @@ fn watch_connections(wake: Sender<()>) -> windows::core::Result<()> {
 /// Bluetooth devices that currently report a battery level, keyed by device instance id.
 fn snapshot() -> HashMap<String, DeviceEvent> {
     let mut out = HashMap::new();
-    for instance in bluetooth_instance_ids() {
+    let instances = bluetooth_instance_ids();
+    // Windows keeps the last battery reading of paired devices that are switched off, so only
+    // trust nodes that belong to a device Windows says is connected right now.
+    let connected = connected_addresses(&instances);
+    for instance in instances {
+        if !belongs_to_connected(&instance, &connected) {
+            continue;
+        }
         let Some(devnode) = locate(&instance) else { continue };
         let Some(level) = read_property::<1>(devnode, &BATTERY_KEY).map(|b| b[0]) else { continue };
         if level > 100 {
@@ -147,6 +160,32 @@ fn snapshot() -> HashMap<String, DeviceEvent> {
         );
     }
     out
+}
+
+/// Hardware addresses (12 hex digits) of paired devices that are currently connected.
+fn connected_addresses(instances: &[String]) -> Vec<String> {
+    instances
+        .iter()
+        .filter_map(|id| {
+            let address = device_address(id)?;
+            let devnode = locate(id)?;
+            let flag = read_property::<1>(devnode, &IS_CONNECTED_KEY)?;
+            (flag[0] != 0).then_some(address)
+        })
+        .collect()
+}
+
+/// The address in a paired device's own node id, e.g. `BTHENUM\DEV_4142FCB0FABE\...`.
+fn device_address(instance: &str) -> Option<String> {
+    let rest = instance.strip_prefix("BTHENUM\\DEV_").or_else(|| instance.strip_prefix("BTHLE\\DEV_"))?;
+    let address = rest.split('\\').next()?;
+    (address.len() == 12 && address.chars().all(|c| c.is_ascii_hexdigit())).then(|| address.to_ascii_uppercase())
+}
+
+/// Profile nodes (hands-free, A2DP, ...) carry the device address inside their own id.
+fn belongs_to_connected(instance: &str, connected: &[String]) -> bool {
+    let id = instance.to_ascii_uppercase();
+    connected.iter().any(|address| id.contains(address.as_str()))
 }
 
 fn bluetooth_instance_ids() -> Vec<String> {
@@ -216,6 +255,20 @@ mod tests {
         assert_eq!(clean_name("WH-1000XM4 Hands-Free AG Audio"), "WH-1000XM4");
         assert_eq!(clean_name("Orbi Buds Hands-Free"), "Orbi Buds");
         assert_eq!(clean_name("Orbi Buds"), "Orbi Buds");
+    }
+
+    #[test]
+    fn extracts_the_device_address() {
+        assert_eq!(device_address("BTHENUM\\DEV_4142FCB0FABE\\7&9574CD4&0&BLUETOOTHDEVICE_4142FCB0FABE").as_deref(), Some("4142FCB0FABE"));
+        assert_eq!(device_address("BTHENUM\\{0000111E-0000-1000-8000-00805F9B34FB}_LOCALMFG&0002\\7&9574CD4&0&4142FCB0FABE_C00000000"), None);
+    }
+
+    #[test]
+    fn profile_nodes_match_only_connected_devices() {
+        let hfp = "BTHENUM\\{0000111E-0000-1000-8000-00805F9B34FB}_LOCALMFG&0002\\7&9574CD4&0&4142FCB0FABE_C00000000";
+        assert!(belongs_to_connected(hfp, &["4142FCB0FABE".into()]));
+        assert!(!belongs_to_connected(hfp, &["B1897FF7CD77".into()]));
+        assert!(!belongs_to_connected(hfp, &[]));
     }
 
     /// Runs the real enumeration; on a machine with no battery-reporting earbuds it is empty.

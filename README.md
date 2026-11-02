@@ -13,12 +13,12 @@ Full plan, architecture and progress log: `Orbi-Tech-Plan.pdf`.
 | 1 | Tauri 2 scaffold, tray-only app | done |
 | 2 | Popup on demand, UI layouts, mock events | done |
 | 3 | Core (state, dedupe, debounce, low-battery rule), Watcher trait, pipeline | done, 7 unit tests |
-| 4 | Bluetooth watcher (generic battery) | built, not verified on hardware |
+| 4 | Bluetooth watcher (generic battery) | done; ignores switched-off paired devices; popup shows the full pair and case |
 | 5 | AirPods left / right / case parsing | built, parser unit tested, not verified on hardware |
 | 6 | Wi-Fi, Ethernet, USB watchers | done (Wi-Fi read verified live) |
 | Design | Orbit design language | done (v1) |
-| 7 | Polish (your mockups, Mica, settings, autostart) | not started |
-| 8 | Installer and measurements | not started |
+| 7 | Polish: settings, autostart, icon, artwork pack | partly done; needs your mockups |
+| 8 | Installer and measurements | done (installer 1.4 MB); final re-measure pending |
 
 ## Layout
 
@@ -31,7 +31,7 @@ Full plan, architecture and progress log: `Orbi-Tech-Plan.pdf`.
 - `src-tauri/src/mock.rs`: fake devices for development
 - `src/`, `index.html`: popup UI (`main.ts` layouts, `art.ts` SVG artwork, `styles.css`; layout chosen by device type)
 - `src-tauri/src/watchers/`: `bluetooth.rs`, `airpods.rs`, `network.rs` (Wi-Fi, Ethernet), `usb.rs`
-- `prototype-electron/`: old throwaway prototype, to be deleted
+
 
 ## Requirements (Windows 11)
 
@@ -52,6 +52,8 @@ Mock ids: `mock_earbuds`, `mock_airpods`, `mock_wifi`, `mock_ethernet`, `mock_us
 for each. Use `npm run tauri build`, not a plain `cargo build`: a plain cargo build makes the popup load the dev
 server and show a blank error page.
 
-Tests: `cd src-tauri && cargo test` (18 tests).
+Tests: `cd src-tauri && cargo test` (23 tests).
+
+Installer: `npm run tauri build` writes `src-tauri/target/release/bundle/nsis/Orbi_0.1.0_x64-setup.exe`.
 
 Known limits: devices already connected at launch do not pop up; USB hard drives and SSDs are not detected (Windows reports them as fixed disks); Bluetooth and AirPods code needs real hardware to verify.

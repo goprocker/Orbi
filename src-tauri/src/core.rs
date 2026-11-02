@@ -178,7 +178,7 @@ mod tests {
         core.handle(mock::event("mock_ethernet").unwrap(), t);
         assert_eq!(
             core.tooltip(),
-            "AirPods Pro: left 82% right 35% case 12%\nEthernet: connected\nOrbi Buds: 64%"
+            "AirPods Pro: left 82% right 35% case 12%\nDubstep Buzz X12: 90%\nEthernet: connected"
         );
         core.handle(with_status(airpods(), Status::Disconnected), t);
         assert!(!core.tooltip().contains("AirPods"));

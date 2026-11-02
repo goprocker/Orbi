@@ -8,12 +8,18 @@ use tauri::{
 };
 
 use crate::events::DeviceEvent;
+use crate::settings::SettingsState;
+
+/// WebView2 launch flags tuned for a small, short-lived popup. Measured on this PC: private memory
+/// of the helper processes drops from about 175 MB (defaults) to about 82 MB. Software rendering
+/// is fine for one small card; one renderer and no spare pre-warmed renderer cut the process count.
+/// These replace Tauri's default flags, so its three `disable-features` entries are kept.
+const WEBVIEW_ARGS: &str = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,site-per-process,IsolateOrigins,OptimizationHints,Translate,SpareRendererForSitePerProcess --disable-site-isolation-trials --disable-renderer-backgrounding --disable-component-update --renderer-process-limit=1 --in-process-gpu --disable-gpu --disable-software-rasterizer";
 
 const LABEL: &str = "popup";
 const WIDTH: f64 = 380.0;
 const HEIGHT: f64 = 270.0;
 const MARGIN: f64 = 16.0;
-const SHOW_FOR: Duration = Duration::from_millis(5000);
 const TICK: Duration = Duration::from_millis(250);
 
 #[derive(Default)]
@@ -33,7 +39,7 @@ pub fn show(app: &AppHandle, event: DeviceEvent) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window(LABEL) {
         window.emit("device", &event)?;
     } else {
-        let window = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
+        let builder = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
             .inner_size(WIDTH, HEIGHT)
             .decorations(false)
             .transparent(true)
@@ -42,8 +48,8 @@ pub fn show(app: &AppHandle, event: DeviceEvent) -> tauri::Result<()> {
             .skip_taskbar(true)
             .resizable(false)
             .focusable(false)
-            .visible(false)
-            .build()?;
+            .visible(false);
+        let window = builder.additional_browser_args(WEBVIEW_ARGS).build()?;
 
         if let Some(monitor) = app.primary_monitor()? {
             let scale = monitor.scale_factor();
@@ -62,7 +68,8 @@ pub fn show(app: &AppHandle, event: DeviceEvent) -> tauri::Result<()> {
 /// Close after SHOW_FOR unless the user is hovering or a newer event replaced this one.
 fn schedule_close(app: AppHandle, generation: u64) {
     thread::spawn(move || {
-        thread::sleep(SHOW_FOR);
+        let secs = app.state::<SettingsState>().0.lock().unwrap().popup_seconds.clamp(2, 30);
+        thread::sleep(Duration::from_secs(secs));
         loop {
             let state = app.state::<PopupState>();
             if state.generation.load(Ordering::SeqCst) != generation {

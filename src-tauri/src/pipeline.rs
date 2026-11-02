@@ -5,7 +5,10 @@ use std::time::Instant;
 use tauri::AppHandle;
 
 use crate::core::{Action, Core};
-use crate::events::DeviceEvent;
+use tauri::Manager;
+
+use crate::events::{DeviceEvent, Status};
+use crate::settings::SettingsState;
 use crate::{popup, watchers, TRAY_ID};
 
 /// Sender handle watchers (and the tray's mock menu) use to push events into the core.
@@ -20,6 +23,10 @@ pub fn start(app: &AppHandle) -> Bus {
     thread::spawn(move || {
         let mut core = Core::default();
         for event in rx {
+            let enabled = app.state::<SettingsState>().0.lock().unwrap().enabled(&event.device_type);
+            if !enabled && event.status != Status::Disconnected {
+                continue;
+            }
             if let Action::Show(e) = core.handle(event, Instant::now()) {
                 if let Err(err) = popup::show(&app, e) {
                     eprintln!("[orbi] popup failed: {err}");

@@ -9,14 +9,20 @@ pub fn event(id: &str) -> Option<DeviceEvent> {
     let (device_type, name, parts, metrics) = match id {
         "mock_earbuds" => (
             DeviceType::Bluetooth,
-            "Orbi Buds",
-            vec![part("main", 64, false)],
+            "Dubstep Buzz X12",
+            vec![part("main", 90, false)],
             Metrics::default(),
         ),
         "mock_airpods" => (
             DeviceType::Bluetooth,
             "AirPods Pro",
             vec![part("left", 82, false), part("right", 35, true), part("case", 12, false)],
+            Metrics::default(),
+        ),
+        "mock_dubstep" => (
+            DeviceType::Bluetooth,
+            "Dubstep Buds",
+            vec![part("left", 90, false), part("right", 70, true), part("case", 55, false)],
             Metrics::default(),
         ),
         "mock_wifi" => (
